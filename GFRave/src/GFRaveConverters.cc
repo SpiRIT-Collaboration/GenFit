@@ -98,10 +98,13 @@ GFTrackToTrack(trackAndState trackAndState, int id, std::string tag){
   trackAndState.track_->getFittedState().getPosMomCov(pos, mom, cov);
 
   // state
-  rave::Vector6D ravestate(pos.X(), pos.Y(), pos.Z(),
-                           mom.X(), mom.Y(), mom.Z());
+  //  rave::Vector6D ravestate(pos.X(), pos.Y(), pos.Z(),
+  //                           mom.X(), mom.Y(), mom.Z());
+  rave::Vector6D ravestate(pos.Z(), pos.X(), pos.Y(),
+                           mom.Z(), mom.X(), mom.Y());
 
   // covariance
+  /*
   rave::Covariance6D ravecov(cov(0,0), cov(1,0), cov(2,0),
                              cov(1,1), cov(2,1), cov(2,2),
                              cov(3,0), cov(4,0), cov(5,0),
@@ -109,6 +112,15 @@ GFTrackToTrack(trackAndState trackAndState, int id, std::string tag){
                              cov(3,2), cov(4,2), cov(5,2),
                              cov(3,3), cov(4,3), cov(5,3),
                              cov(4,4), cov(5,4), cov(5,5));
+  */
+  rave::Covariance6D ravecov(cov(2,2), cov(0,2), cov(1,2),
+                             cov(0,0), cov(1,0), cov(1,1),
+                             cov(5,2), cov(3,2), cov(4,2),
+                             cov(5,0), cov(3,0), cov(4,0),
+                             cov(5,1), cov(3,1), cov(4,1),
+                             cov(5,5), cov(3,5), cov(4,5),
+                             cov(3,3), cov(4,3), cov(4,4));
+
 
   //std::cerr<<"create rave track with id " << id << std::endl;
   //std::cerr<<"  pos: "; Point3DToTVector3(ravestate.position()).Print();
@@ -130,8 +142,10 @@ GFTrackToTrack(trackAndState trackAndState, int id, std::string tag){
 void
 setData(const rave::Track& orig, MeasuredStateOnPlane* state){
 
-  state->setPosMomCov(TVector3(orig.state().x(), orig.state().y(), orig.state().z()),
-                      TVector3(orig.state().px(), orig.state().py(), orig.state().pz()),
+  //  state->setPosMomCov(TVector3(orig.state().x(), orig.state().y(), orig.state().z()),
+  //                      TVector3(orig.state().px(), orig.state().py(), orig.state().pz()),
+  state->setPosMomCov(TVector3(orig.state().y(), orig.state().z(), orig.state().x()),
+		      TVector3(orig.state().py(), orig.state().pz(), orig.state().px()),
                       Covariance6DToTMatrixDSym(orig.error()));
 
 }
@@ -230,12 +244,14 @@ PlaneToGFDetPlane(const ravesurf::Plane& rplane) {
 
 TVector3
 Point3DToTVector3(const rave::Point3D& v) {
-  return TVector3(v.x(), v.y(), v.z());
+  //  return TVector3(v.x(), v.y(), v.z());
+  return TVector3(v.y(), v.z(), v.x());
 }
 
 TVector3
 Vector3DToTVector3(const rave::Vector3D& v) {
-  return TVector3(v.x(), v.y(), v.z());
+  //  return TVector3(v.x(), v.y(), v.z());
+  return TVector3(v.y(), v.z(), v.x());
 }
 
 
@@ -243,6 +259,7 @@ TMatrixDSym
 Covariance3DToTMatrixDSym(const rave::Covariance3D& ravecov){
   TMatrixDSym cov(3);
 
+  /*
   cov(0,0) = ravecov.dxx();
   cov(0,1) = ravecov.dxy();
   cov(0,2) = ravecov.dxz();
@@ -254,6 +271,19 @@ Covariance3DToTMatrixDSym(const rave::Covariance3D& ravecov){
   cov(2,0) = ravecov.dxz();
   cov(2,1) = ravecov.dyz();
   cov(2,2) = ravecov.dzz();
+  */
+
+  cov(2,2) = ravecov.dxx();
+  cov(2,0) = ravecov.dxy();
+  cov(2,1) = ravecov.dxz();
+
+  cov(0,2) = ravecov.dxy();
+  cov(0,0) = ravecov.dyy();
+  cov(0,1) = ravecov.dyz();
+
+  cov(1,2) = ravecov.dxz();
+  cov(1,0) = ravecov.dyz();
+  cov(1,1) = ravecov.dzz();
 
   return cov;
 }
@@ -263,6 +293,7 @@ TVectorD
 Vector6DToTVectorD(const rave::Vector6D& ravevec){
   TVectorD vec(6);
 
+  /*
   vec[0] = ravevec.x();
   vec[1] = ravevec.y();
   vec[2] = ravevec.z();
@@ -270,6 +301,15 @@ Vector6DToTVectorD(const rave::Vector6D& ravevec){
   vec[3] = ravevec.px();
   vec[4] = ravevec.py();
   vec[5] = ravevec.pz();
+  */
+
+  vec[2] = ravevec.x();
+  vec[0] = ravevec.y();
+  vec[1] = ravevec.z();
+
+  vec[5] = ravevec.px();
+  vec[3] = ravevec.py();
+  vec[4] = ravevec.pz();
 
   return vec;
 }
@@ -279,6 +319,7 @@ TMatrixDSym
 Covariance6DToTMatrixDSym(const rave::Covariance6D& ravecov){
   TMatrixDSym cov(6);
 
+  /*
   cov(0,0) = ravecov.dxx();
   cov(0,1) = ravecov.dxy();
   cov(0,2) = ravecov.dxz();
@@ -320,6 +361,50 @@ Covariance6DToTMatrixDSym(const rave::Covariance6D& ravecov){
   cov(5,3) = ravecov.dpxpz();
   cov(5,4) = ravecov.dpypz();
   cov(5,5) = ravecov.dpzpz();
+  */
+
+  cov(2,2) = ravecov.dxx();
+  cov(2,0) = ravecov.dxy();
+  cov(2,1) = ravecov.dxz();
+  cov(2,5) = ravecov.dxpx();
+  cov(2,3) = ravecov.dxpy();
+  cov(2,4) = ravecov.dxpz();
+
+  cov(0,2) = ravecov.dxy();
+  cov(0,0) = ravecov.dyy();
+  cov(0,1) = ravecov.dyz();
+  cov(0,5) = ravecov.dypx();
+  cov(0,3) = ravecov.dypy();
+  cov(0,4) = ravecov.dypz();
+
+  cov(1,2) = ravecov.dxz();
+  cov(1,0) = ravecov.dyz();
+  cov(1,1) = ravecov.dzz();
+  cov(1,5) = ravecov.dzpx();
+  cov(1,3) = ravecov.dzpy();
+  cov(1,4) = ravecov.dzpz();
+
+  cov(5,2) = ravecov.dxpx();
+  cov(5,0) = ravecov.dypx();
+  cov(5,1) = ravecov.dzpx();
+  cov(5,5) = ravecov.dpxpx();
+  cov(5,3) = ravecov.dpxpy();
+  cov(5,4) = ravecov.dpxpz();
+
+  cov(3,2) = ravecov.dxpy();
+  cov(3,0) = ravecov.dypy();
+  cov(3,1) = ravecov.dzpy();
+  cov(3,5) = ravecov.dpxpy();
+  cov(3,3) = ravecov.dpypy();
+  cov(3,4) = ravecov.dpypz();
+
+  cov(4,2) = ravecov.dxpz();
+  cov(4,0) = ravecov.dypz();
+  cov(4,1) = ravecov.dzpz();
+  cov(4,5) = ravecov.dpxpz();
+  cov(4,3) = ravecov.dpypz();
+  cov(4,4) = ravecov.dpzpz();
+
 
   return cov;
 }
@@ -327,7 +412,8 @@ Covariance6DToTMatrixDSym(const rave::Covariance6D& ravecov){
 
 rave::Point3D
 TVector3ToPoint3D(const TVector3 & vec){
-  return rave::Point3D(vec.X(), vec.Y(), vec.Z());
+  //  return rave::Point3D(vec.X(), vec.Y(), vec.Z());
+  return rave::Point3D(vec.Z(), vec.X(), vec.Y());
 }
 
 
@@ -338,8 +424,10 @@ TMatrixDSymToCovariance3D(const TMatrixDSym & matrix){
     throw exc;
   }
 
-  return rave::Covariance3D(matrix(0,0), matrix(0,1), matrix(0,2),
-                            matrix(1,1), matrix(1,2), matrix(2,2));
+  //  return rave::Covariance3D(matrix(0,0), matrix(0,1), matrix(0,2),
+  //                            matrix(1,1), matrix(1,2), matrix(2,2));
+  return rave::Covariance3D(matrix(2,2), matrix(2,0), matrix(2,1),
+			    matrix(0,0), matrix(0,1), matrix(1,1));
 
 }
 
