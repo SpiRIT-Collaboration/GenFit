@@ -35,12 +35,14 @@ GFRaveMagneticField::copy() const{
 rave::Vector3D
 GFRaveMagneticField::inTesla ( const rave::Point3D & position) const
 {
-  TVector3 pos(position.x(), position.y(), position.z());
+  //  TVector3 pos(position.x(), position.y(), position.z());
+  TVector3 pos(position.y(), position.z(), position.x());
 
   TVector3 B = FieldManager::getInstance()->getFieldVal(pos); // magnetic field in kGauss
   B *= 1.E-1;
 
-  return rave::Vector3D (B.X(), B.Y(), B.Z());
+  //  return rave::Vector3D (B.X(), B.Y(), B.Z());
+  return rave::Vector3D (B.Z(), B.X(), B.Y());
 }
 
 
